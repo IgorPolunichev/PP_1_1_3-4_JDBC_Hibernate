@@ -12,15 +12,9 @@ public class UserDaoJDBCImpl implements UserDao {
     private Connection connection;
     private Statement statement;
     private User user;
-    private long userId = 1;
+    private PreparedStatement ps;
 
     public UserDaoJDBCImpl() {
-
-        try {
-            connection = Util.connect();
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
 
     }
 
@@ -31,51 +25,75 @@ public class UserDaoJDBCImpl implements UserDao {
                 + "UserLastname VARCHAR(50) NOT NULL, "
                 + "Age          INT NOT NULL )";
         try {
+            connection = Util.connect();
             DatabaseMetaData dm = connection.getMetaData();
             ResultSet rs = dm.getTables(null, "new_schema",
                     "MyTableUsers",
                     null);
-            if(!rs.next()) {
+            if (!rs.next()) {
                 statement = connection.createStatement();
                 statement.executeUpdate(createTable);
-                statement.close();
             }
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
-        }
+        } finally {
+            try {
+                statement.close();
+                connection.close();
 
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void dropUsersTable() {
         try {
+            connection = Util.connect();
             DatabaseMetaData dm = connection.getMetaData();
             ResultSet rs = dm.getTables(null, "new_schema", "MyTableUsers", null);
             if (rs.next()) {
                 statement = connection.createStatement();
                 int res = statement.executeUpdate("DROP TABLE MyTableUsers");
-                statement.close();
-                userId = 1;
             }
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (statement != null){
+                statement.close();}
+                connection.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     public void saveUser(String name, String lastName, byte age) {
-        user = new User(name,lastName,age);
-        String insertData = String.format("INSERT into MyTableUsers(UserName , UserLastName , Age) VALUES (?, ?, ?)");
+        user = new User(name, lastName, age);
+        String insertData = "INSERT into MyTableUsers(UserName , UserLastName , Age) VALUES (?, ?, ?)";
         try {
-            PreparedStatement ps = connection.prepareStatement(insertData, Statement.RETURN_GENERATED_KEYS);
+            connection = Util.connect();
+            ps = connection.prepareStatement(insertData, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, user.getName());
             ps.setString(2, user.getLastName());
             ps.setInt(3, user.getAge());
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next())
-            {user.setId(rs.getLong(1));}
-            ps.close();
-        } catch (SQLException e) {
+            if (rs.next()) {
+                user.setId(rs.getLong(1));
+            }
+
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                ps.close();
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         System.out.printf("User с именем - %s добавлен в базу данных\n", user.getName());
     }
@@ -83,23 +101,32 @@ public class UserDaoJDBCImpl implements UserDao {
     public void removeUserById(long id) {
         String removeUser = " DELETE FROM MyTableUsers WHERE UserId= ?";
         try {
-            PreparedStatement ps = connection.prepareStatement(removeUser);
+            connection = Util.connect();
+            ps = connection.prepareStatement(removeUser);
             ps.setLong(1, id);
             ps.execute();
-        }catch (SQLException e){
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                ps.close();
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
     public List<User> getAllUsers() {
 
-        ArrayList<User> listUsers= new ArrayList<>();
+        ArrayList<User> listUsers = new ArrayList<>();
 
         try {
-            Statement statement = connection.createStatement();
+            connection = Util.connect();
+            statement = connection.createStatement();
             ResultSet rs = statement.executeQuery("SELECT * FROM MyTableUsers");
-            while (rs.next())
-            {
+            while (rs.next()) {
                 User user = new User();
                 user.setId(rs.getLong("UserId"));
                 user.setName(rs.getString("UserName"));
@@ -107,8 +134,17 @@ public class UserDaoJDBCImpl implements UserDao {
                 user.setAge((byte) rs.getLong("Age"));
                 listUsers.add(user);
             }
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
+        }
+        finally {
+            try {
+                statement.close();
+                connection.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
 
 
@@ -117,11 +153,20 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void cleanUsersTable() {
         try {
+            connection = Util.connect();
             statement = connection.createStatement();
             statement.executeUpdate("TRUNCATE TABLE MyTableUsers");
-            statement.close();
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
+        }
+        finally {
+            try {
+                statement.close();
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
         }
 
 
