@@ -37,18 +37,6 @@ public class Util {
             StandardServiceRegistryBuilder ssrb = new StandardServiceRegistryBuilder()
                     .applySettings(cfg.getProperties());
 
-
-//        Properties prop = new Properties();
-//        prop.setProperty("hibernate.connection.url", url);
-//        prop.setProperty("hibernate.connection.username", userName);
-//        prop.setProperty("hibernate.connection.password", pass);
-//        prop.setProperty("dialect", "org.hibernate.dialect.MySQLDialect");
-//        prop.setProperty("hibernate.hbm2ddl.auto", "create");
-//        sf = new org.hibernate.cfg.Configuration()
-//                .addProperties(prop)
-//                .addAnnotatedClass(User.class)
-//                .buildSessionFactory();
-
         return cfg.buildSessionFactory(ssrb.build());
 
     }
