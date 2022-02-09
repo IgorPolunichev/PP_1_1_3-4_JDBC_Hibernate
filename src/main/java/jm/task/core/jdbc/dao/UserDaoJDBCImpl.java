@@ -25,7 +25,7 @@ public class UserDaoJDBCImpl implements UserDao {
                 + "UserLastname VARCHAR(50) NOT NULL, "
                 + "Age          INT NOT NULL )";
         try {
-            connection = Util.connect();
+            connection = Util.connectJDBC();
             DatabaseMetaData dm = connection.getMetaData();
             ResultSet rs = dm.getTables(null, "new_schema",
                     "MyTableUsers",
@@ -49,7 +49,7 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void dropUsersTable() {
         try {
-            connection = Util.connect();
+            connection = Util.connectJDBC();
             DatabaseMetaData dm = connection.getMetaData();
             ResultSet rs = dm.getTables(null, "new_schema", "MyTableUsers", null);
             if (rs.next()) {
@@ -74,7 +74,7 @@ public class UserDaoJDBCImpl implements UserDao {
         user = new User(name, lastName, age);
         String insertData = "INSERT into MyTableUsers(UserName , UserLastName , Age) VALUES (?, ?, ?)";
         try {
-            connection = Util.connect();
+            connection = Util.connectJDBC();
             ps = connection.prepareStatement(insertData, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, user.getName());
             ps.setString(2, user.getLastName());
@@ -101,7 +101,7 @@ public class UserDaoJDBCImpl implements UserDao {
     public void removeUserById(long id) {
         String removeUser = " DELETE FROM MyTableUsers WHERE UserId= ?";
         try {
-            connection = Util.connect();
+            connection = Util.connectJDBC();
             ps = connection.prepareStatement(removeUser);
             ps.setLong(1, id);
             ps.execute();
@@ -123,7 +123,7 @@ public class UserDaoJDBCImpl implements UserDao {
         ArrayList<User> listUsers = new ArrayList<>();
 
         try {
-            connection = Util.connect();
+            connection = Util.connectJDBC();
             statement = connection.createStatement();
             ResultSet rs = statement.executeQuery("SELECT * FROM MyTableUsers");
             while (rs.next()) {
@@ -153,7 +153,7 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void cleanUsersTable() {
         try {
-            connection = Util.connect();
+            connection = Util.connectJDBC();
             statement = connection.createStatement();
             statement.executeUpdate("TRUNCATE TABLE MyTableUsers");
         } catch (SQLException | ClassNotFoundException e) {
