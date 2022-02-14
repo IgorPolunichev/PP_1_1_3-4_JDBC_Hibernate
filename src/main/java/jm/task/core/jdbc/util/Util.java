@@ -25,8 +25,8 @@ public class Util {
     }
 
     public static SessionFactory connectHibernate() {
+        if (sf == null) {
             Configuration cfg = new Configuration();
-
             cfg.addAnnotatedClass(User.class);
             cfg.setProperty("connection.driver_class", "com.mysql.cj.jdbc.Driver");
             cfg.setProperty("hibernate.connection.url", url);
@@ -36,8 +36,11 @@ public class Util {
             cfg.setProperty("hibernate.hbm2ddl.auto", "update");
             StandardServiceRegistryBuilder ssrb = new StandardServiceRegistryBuilder()
                     .applySettings(cfg.getProperties());
+            return sf = cfg.buildSessionFactory(ssrb.build());
+        }
 
-        return cfg.buildSessionFactory(ssrb.build());
+
+        return sf;
 
     }
 

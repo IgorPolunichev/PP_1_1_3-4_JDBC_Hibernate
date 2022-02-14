@@ -14,24 +14,36 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 public class UserDaoHibernateImpl implements UserDao {
-    private SessionFactory sessionFactory;
     private Session session;
     private Transaction transaction;
 
     public UserDaoHibernateImpl() {
 
-    }
 
+    }
 
     @Override
     public void createUsersTable() {
+        String createTable = "CREATE TABLE IF NOT EXISTS MyUserTable ("
+                + "UserId       BIGINT(19)  NOT NULL    AUTO_INCREMENT    PRIMARY KEY, "
+                + "Name     VARCHAR(50) NOT NULL, "
+                + "Lastname VARCHAR(50) NOT NULL, "
+                + "Age          INT NOT NULL )";
         try {
-            sessionFactory = Util.connectHibernate();
+            session = Util.connectHibernate().openSession();
+            transaction = session.beginTransaction();
+            Query query = session.createSQLQuery(createTable).addEntity(User.class);
+            query.executeUpdate();
+            transaction.commit();
         } catch (Throwable e) {
-            e.printStackTrace();
+            if (transaction.getStatus() == TransactionStatus.ACTIVE
+                    || transaction.getStatus() == TransactionStatus.MARKED_ROLLBACK) {
+                transaction.rollback();
+            }
         } finally {
-            sessionFactory.close();
+            session.close();
         }
+
     }
 
     @Override
@@ -100,12 +112,12 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void cleanUsersTable() {
+        String s = "delete from MyUserTable ";
         try {
             session = Util.connectHibernate().openSession();
             transaction = session.beginTransaction();
-            for (User user : getAllUsers()) {
-                session.delete(user);
-            }
+            Query query = session.createSQLQuery(s);
+            query.executeUpdate();
             transaction.commit();
         } catch (Throwable e) {
             if (transaction.getStatus() == TransactionStatus.ACTIVE
